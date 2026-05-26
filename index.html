@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>观心录</title>
+  
+  <!-- PWA 支持 -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#f5f0e8">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%230a0a0a' width='100' height='100' rx='20'/><text x='50' y='65' font-size='50' text-anchor='middle' fill='%23e8e4d9' font-family='serif'>辞</text></svg>">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=17">
+</head>
+<body>
+  <!-- 花瓣飘落动画 -->
+  <div class="petals-container" id="petals"></div>
+
+  <!-- 提示消息 -->
+  <div class="toast" id="toast"></div>
+
+  <!-- 首页视图 -->
+  <div class="view view-home active" id="viewHome">
+    <!-- 顶部极淡导航 -->
+    <nav class="top-nav">
+      <span class="nav-brand">观心录</span>
+    </nav>
+
+    <!-- 语录展示区域 -->
+    <main class="quote-container" id="quoteContainer">
+      <div class="quote-card" id="quoteCard">
+        <!-- 动态内容 -->
+      </div>
+    </main>
+
+    <!-- 底部导航 - 首页时自动淡出 -->
+    <nav class="bottom-nav home-nav" id="bottomNav">
+      <a href="#" class="nav-item active" data-view="home">
+        <span class="nav-icon">辞</span>
+        <span class="nav-label">首页</span>
+      </a>
+      <a href="#" class="nav-item" data-view="category">
+        <span class="nav-icon">类</span>
+        <span class="nav-label">分类</span>
+      </a>
+      <a href="#" class="nav-item" data-view="search">
+        <span class="nav-icon">搜</span>
+        <span class="nav-label">搜索</span>
+      </a>
+      <a href="#" class="nav-item" data-view="add">
+        <span class="nav-icon">录</span>
+        <span class="nav-label">添加</span>
+      </a>
+      <a href="#" class="nav-item" data-view="favorites">
+        <span class="nav-icon">我</span>
+        <span class="nav-label">我的</span>
+      </a>
+    </nav>
+  </div>
+
+  <!-- 分类视图 -->
+  <div class="view view-category" id="viewCategory">
+    <div class="view-header">
+      <h2>分类</h2>
+      <button class="back-btn" data-view="home">< 返回</button>
+    </div>
+    <div class="category-list" id="categoryList">
+      <!-- 动态生成 -->
+    </div>
+    <nav class="bottom-nav">
+      <a href="#" class="nav-item" data-view="home">
+        <span class="nav-icon">辞</span>
+        <span class="nav-label">首页</span>
+      </a>
+      <a href="#" class="nav-item active" data-view="category">
+        <span class="nav-icon">类</span>
+        <span class="nav-label">分类</span>
+      </a>
+      <a href="#" class="nav-item" data-view="search">
+        <span class="nav-icon">搜</span>
+        <span class="nav-label">搜索</span>
+      </a>
+      <a href="#" class="nav-item" data-view="add">
+        <span class="nav-icon">录</span>
+        <span class="nav-label">添加</span>
+      </a>
+      <a href="#" class="nav-item" data-view="favorites">
+        <span class="nav-icon">我</span>
+        <span class="nav-label">我的</span>
+      </a>
+    </nav>
+  </div>
+
+  <!-- 搜索视图 -->
+  <div class="view view-search" id="viewSearch">
+    <div class="view-header">
+      <h2>搜索</h2>
+      <button class="back-btn" data-view="home">< 返回</button>
+    </div>
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="搜索语录...">
+    </div>
+    <div class="search-results" id="searchResults">
+      <p class="search-hint">输入关键词搜索</p>
+    </div>
+    <nav class="bottom-nav">
+      <a href="#" class="nav-item" data-view="home">
+        <span class="nav-icon">辞</span>
+        <span class="nav-label">首页</span>
+      </a>
+      <a href="#" class="nav-item" data-view="category">
+        <span class="nav-icon">类</span>
+        <span class="nav-label">分类</span>
+      </a>
+      <a href="#" class="nav-item active" data-view="search">
+        <span class="nav-icon">搜</span>
+        <span class="nav-label">搜索</span>
+      </a>
+      <a href="#" class="nav-item" data-view="add">
+        <span class="nav-icon">录</span>
+        <span class="nav-label">添加</span>
+      </a>
+      <a href="#" class="nav-item" data-view="favorites">
+        <span class="nav-icon">我</span>
+        <span class="nav-label">我的</span>
+      </a>
+    </nav>
+  </div>
+
+  <!-- 添加语录视图 -->
+  <div class="view view-add" id="viewAdd">
+    <div class="view-header">
+      <h2>添加语录</h2>
+      <button class="back-btn" data-view="home">< 返回</button>
+    </div>
+    <div class="add-form-container">
+      <form id="addQuoteForm">
+        <div class="form-group">
+          <label for="quoteContent">内容 <span class="required">*</span></label>
+          <textarea id="quoteContent" placeholder="输入语录内容..." rows="6" required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="quoteTitle">标题</label>
+          <input type="text" id="quoteTitle" placeholder="可选标题">
+        </div>
+
+        <div class="form-group">
+          <label for="quoteType">类型 <span class="required">*</span></label>
+          <select id="quoteType" required>
+            <option value="short">短句</option>
+            <option value="interpret">解读</option>
+            <option value="long">长文</option>
+            <option value="debate">思辨</option>
+            <option value="business">商业</option>
+            <option value="framework">认知框架</option>
+            <option value="deep">深度</option>
+            <option value="guide">实操</option>
+            <option value="negative">负面</option>
+            <option value="caution">需验证</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>标签</label>
+          <div class="tag-selector" id="tagSelector">
+            <span class="tag-option" data-tag="修心">修心</span>
+            <span class="tag-option" data-tag="行事">行事</span>
+            <span class="tag-option" data-tag="处世">处世</span>
+            <span class="tag-option" data-tag="破局">破局</span>
+            <span class="tag-option" data-tag="警醒">警醒</span>
+            <span class="tag-option" data-tag="谋略">谋略</span>
+            <span class="tag-option" data-tag="商业">商业</span>
+            <span class="tag-option" data-tag="认知">认知</span>
+            <span class="tag-option" data-tag="命理">命理</span>
+            <span class="tag-option" data-tag="健康">健康</span>
+            <span class="tag-option" data-tag="金融">金融</span>
+            <span class="tag-option" data-tag="制度">制度</span>
+            <span class="tag-option" data-tag="管理">管理</span>
+            <span class="tag-option" data-tag="择偶">择偶</span>
+            <span class="tag-option" data-tag="电商">电商</span>
+            <span class="tag-option" data-tag="法律">法律</span>
+          </div>
+          <input type="hidden" id="selectedTags" name="tags">
+        </div>
+
+        <div class="form-group">
+          <label>调性 <span class="required">*</span></label>
+          <div class="tone-selector">
+            <label class="tone-option">
+              <input type="radio" name="tone" value="positive" checked>
+              <span>正面</span>
+            </label>
+            <label class="tone-option">
+              <input type="radio" name="tone" value="neutral">
+              <span>中性</span>
+            </label>
+            <label class="tone-option">
+              <input type="radio" name="tone" value="negative">
+              <span>负面</span>
+            </label>
+            <label class="tone-option">
+              <input type="radio" name="tone" value="caution">
+              <span>需验证</span>
+            </label>
+          </div>
+        </div>
+
+        <button type="submit" class="submit-btn">收录</button>
+      </form>
+    </div>
+    <nav class="bottom-nav">
+      <a href="#" class="nav-item" data-view="home">
+        <span class="nav-icon">辞</span>
+        <span class="nav-label">首页</span>
+      </a>
+      <a href="#" class="nav-item" data-view="category">
+        <span class="nav-icon">类</span>
+        <span class="nav-label">分类</span>
+      </a>
+      <a href="#" class="nav-item" data-view="search">
+        <span class="nav-icon">搜</span>
+        <span class="nav-label">搜索</span>
+      </a>
+      <a href="#" class="nav-item active" data-view="add">
+        <span class="nav-icon">录</span>
+        <span class="nav-label">添加</span>
+      </a>
+      <a href="#" class="nav-item" data-view="favorites">
+        <span class="nav-icon">我</span>
+        <span class="nav-label">我的</span>
+      </a>
+    </nav>
+  </div>
+
+  <!-- 我的视图 -->
+  <div class="view view-favorites" id="viewFavorites">
+    <div class="view-header">
+      <h2>我的</h2>
+      <button class="back-btn" data-view="home">< 返回</button>
+    </div>
+
+    <!-- 收藏列表 -->
+    <div class="my-section">
+      <h3 class="my-section-title">收藏</h3>
+      <div class="favorites-list" id="favoritesList">
+        <p class="empty-hint">暂无收藏</p>
+      </div>
+    </div>
+
+    <nav class="bottom-nav">
+      <a href="#" class="nav-item" data-view="home">
+        <span class="nav-icon">辞</span>
+        <span class="nav-label">首页</span>
+      </a>
+      <a href="#" class="nav-item" data-view="category">
+        <span class="nav-icon">类</span>
+        <span class="nav-label">分类</span>
+      </a>
+      <a href="#" class="nav-item" data-view="search">
+        <span class="nav-icon">搜</span>
+        <span class="nav-label">搜索</span>
+      </a>
+      <a href="#" class="nav-item" data-view="add">
+        <span class="nav-icon">录</span>
+        <span class="nav-label">添加</span>
+      </a>
+      <a href="#" class="nav-item active" data-view="favorites">
+        <span class="nav-icon">我</span>
+        <span class="nav-label">我的</span>
+      </a>
+    </nav>
+  </div>
+
+  <!-- 沉浸阅读视图 -->
+  <div class="view view-immersive" id="viewImmersive">
+    <button class="back-btn immersive-back" data-view="home">< 返回</button>
+    <span class="immersive-brand" id="immersiveBrand">观心录</span>
+    <button class="immersive-edit-btn" id="immersiveEditBtn" title="编辑">编</button>
+    <div class="immersive-content" id="immersiveContent">
+      <!-- 动态内容 -->
+    </div>
+    <button class="immersive-fab" id="immersiveFab" title="编辑">编</button>
+  </div>
+
+  <!-- 分类详情视图 -->
+  <div class="view view-category-detail" id="viewCategoryDetail">
+    <div class="view-header">
+      <h2 id="categoryTitle">分类</h2>
+      <button class="back-btn" data-view="category">< 返回</button>
+    </div>
+    <div class="category-quotes" id="categoryQuotes">
+      <!-- 动态内容 -->
+    </div>
+  </div>
+
+  <!-- 心得弹窗 -->
+  <div class="note-modal" id="noteModal">
+    <div class="note-modal-content">
+      <h3>写心得</h3>
+      <textarea id="noteText" placeholder="记录你的感悟..."></textarea>
+      <div class="note-modal-actions">
+        <button class="btn-cancel" id="noteCancel">取消</button>
+        <button class="btn-save" id="noteSave">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 编辑语录弹窗 -->
+  <div id="editModal" class="edit-modal">
+    <div class="edit-modal-content">
+      <div class="edit-modal-header">
+        <h3>编辑语录</h3>
+        <button class="edit-trash-btn" id="editDelete" title="删除">删</button>
+      </div>
+      <div class="edit-field">
+        <label>标题</label>
+        <input type="text" id="editTitle" placeholder="标题（可选）" />
+      </div>
+      <div class="edit-field">
+        <label>内容</label>
+        <textarea id="editText" rows="8" placeholder="语录内容"></textarea>
+      </div>
+      <div class="edit-field">
+        <label>标签</label>
+        <input type="text" id="editTags" placeholder="用逗号分隔标签" />
+      </div>
+      <div class="edit-modal-actions">
+        <button class="btn-cancel" id="editCancel">取消</button>
+        <button class="btn-save" id="editSave">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js?v=34"></script>
+</body>
+</html>

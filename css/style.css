@@ -1,0 +1,1615 @@
+/* ========================================
+   观心录 - 沉浸式古风语录网站 v3
+   ======================================== */
+
+/* CSS Variables - 默认墨夜主题 */
+:root {
+  /* 墨夜 dark */
+  --bg-primary: #0a0a0a;
+  --bg-card: #111111;
+  --text-primary: #e8e4d9;
+  --text-secondary: #888888;
+  --text-muted: #555555;
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --accent-red: #b22222;
+  --accent-gold: #d4a017;
+  --accent-indigo: #4a6b7f;
+  --shadow-deep: 0 8px 32px rgba(0, 0, 0, 0.6);
+  --petal-color: rgba(232, 228, 217, 0.15);
+}
+
+/* 宣纸 paper */
+[data-theme="paper"] {
+  --bg-primary: #f5f0e6;
+  --bg-card: #ede8dc;
+  --text-primary: #2c2416;
+  --text-secondary: #5a4a38;
+  --text-muted: #8a7a68;
+  --border-subtle: rgba(44, 36, 22, 0.1);
+  --accent-red: #8b2323;
+  --accent-gold: #a07818;
+  --accent-indigo: #3a5a6f;
+  --shadow-deep: 0 8px 32px rgba(44, 36, 22, 0.15);
+  --petal-color: rgba(44, 36, 22, 0.08);
+}
+
+/* 藏蓝 night */
+[data-theme="night"] {
+  --bg-primary: #0d1b2a;
+  --bg-card: #152535;
+  --text-primary: #d4dce8;
+  --text-secondary: #8899aa;
+  --text-muted: #556677;
+  --border-subtle: rgba(212, 220, 232, 0.08);
+  --accent-red: #c44536;
+  --accent-gold: #e8b84a;
+  --accent-indigo: #5a8aaa;
+  --shadow-deep: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --petal-color: rgba(212, 220, 232, 0.1);
+}
+
+/* 松烟 smoke */
+[data-theme="smoke"] {
+  --bg-primary: #2c2c2c;
+  --bg-card: #363636;
+  --text-primary: #e0ddd8;
+  --text-secondary: #999590;
+  --text-muted: #666360;
+  --border-subtle: rgba(224, 221, 216, 0.06);
+  --accent-red: #a83232;
+  --accent-gold: #c49a28;
+  --accent-indigo: #4a7a8f;
+  --shadow-deep: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --petal-color: rgba(224, 221, 216, 0.1);
+}
+
+/* Reset & Base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: 'Noto Serif SC', serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+/* ========================================
+   花瓣飘落动画
+   ======================================== */
+.petals-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.petal {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: var(--petal-color);
+  border-radius: 50% 0 50% 50%;
+  animation: fall linear infinite;
+}
+
+.petal:nth-child(1) {
+  left: 20%;
+  animation-duration: 15s;
+  animation-delay: 0s;
+  width: 10px;
+  height: 10px;
+}
+
+.petal:nth-child(2) {
+  left: 50%;
+  animation-duration: 18s;
+  animation-delay: 3s;
+  width: 8px;
+  height: 8px;
+}
+
+.petal:nth-child(3) {
+  left: 80%;
+  animation-duration: 20s;
+  animation-delay: 6s;
+  width: 6px;
+  height: 6px;
+}
+
+@keyframes fall {
+  0% {
+    top: -20px;
+    opacity: 0;
+    transform: rotate(0deg) translateX(0);
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    top: 100vh;
+    opacity: 0;
+    transform: rotate(360deg) translateX(50px);
+  }
+}
+
+/* ========================================
+   Toast 提示
+   ======================================== */
+.toast {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  padding: 16px 32px;
+  border-radius: 8px;
+  font-size: 16px;
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  border: 1px solid var(--border-subtle);
+}
+
+.toast.show {
+  opacity: 1;
+}
+
+/* ========================================
+   视图切换
+   ======================================== */
+.view {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+  flex-direction: column;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.view.active {
+  display: flex;
+  opacity: 1;
+}
+
+/* ========================================
+   顶部导航
+   ======================================== */
+.top-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: center;
+  z-index: 100;
+  background: linear-gradient(to bottom, var(--bg-primary) 0%, transparent 100%);
+  transition: background 0.5s ease;
+}
+
+.nav-brand {
+  font-family: 'Ma Shan Zheng', cursive;
+  font-size: 24px;
+  color: var(--text-muted);
+  letter-spacing: 4px;
+  opacity: 0.5;
+}
+
+/* ========================================
+   首页视图
+   ======================================== */
+.view-home {
+  padding-bottom: 80px;
+}
+
+.quote-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 24px 40px;
+  max-width: 680px;
+  margin: 0 auto;
+  width: 100%;
+  touch-action: pan-y;
+}
+
+.quote-card {
+  width: 100%;
+  text-align: center;
+  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.4s ease;
+}
+
+.quote-card.slide-up {
+  transform: translateY(-30px);
+  opacity: 0;
+}
+
+.quote-card.slide-down {
+  transform: translateY(30px);
+  opacity: 0;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========================================
+   竖排模式 - 短句默认展示
+   ======================================== */
+.quote-short {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+}
+
+.quote-short.vertical {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  max-height: 60vh;
+  padding: 20px;
+}
+
+.quote-short.vertical .quote-text {
+  font-size: clamp(42px, 12vw, 80px);
+  letter-spacing: 8px;
+  line-height: 1.8;
+}
+
+.quote-short.horizontal .quote-text {
+  font-size: clamp(36px, 10vw, 64px);
+  letter-spacing: 4px;
+  line-height: 1.6;
+}
+
+.quote-short .quote-text {
+  font-family: 'Ma Shan Zheng', cursive;
+  color: var(--text-primary);
+  text-align: center;
+  white-space: pre-line;
+  margin-bottom: 0;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.quote-short .quote-tags {
+  margin-top: 32px;
+}
+
+/* 竖排模式下标签在侧面 */
+.quote-short.vertical .quote-tags {
+  margin-top: 24px;
+  writing-mode: horizontal-tb;
+  flex-direction: row;
+}
+
+/* ========================================
+   语录类型展示
+   ======================================== */
+
+/* 通用标签样式 */
+.quote-tags {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 24px 0 16px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  padding: 4px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  opacity: 0.6;
+  transition: all 0.3s ease;
+}
+
+/* 长文/深度模式 - 首页预览 */
+.quote-preview .quote-title {
+  font-family: 'Ma Shan Zheng', cursive;
+  font-size: 28px;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+  letter-spacing: 2px;
+}
+
+.quote-preview .quote-excerpt {
+  font-size: 15px;
+  color: var(--text-secondary);
+  line-height: 1.9;
+  max-width: 560px;
+  margin: 0 auto 20px;
+  opacity: 0.8;
+}
+
+.expand-btn {
+  display: inline-block;
+  padding: 10px 28px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 24px;
+  font-size: 13px;
+  color: var(--text-muted);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 16px;
+}
+
+.expand-btn:hover {
+  border-color: var(--text-secondary);
+  color: var(--text-secondary);
+  opacity: 1;
+}
+
+/* 解读体模式 */
+.quote-interpret .quote-text {
+  font-family: 'Ma Shan Zheng', cursive;
+  font-size: clamp(28px, 6vw, 42px);
+  color: var(--text-primary);
+  text-align: center;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.quote-interpret .quote-interpretation {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 2;
+  text-align: left;
+  max-width: 480px;
+  margin: 0 auto;
+  opacity: 0.75;
+}
+
+/* 思辨体模式 */
+.quote-debate .quote-text {
+  font-family: 'Ma Shan Zheng', cursive;
+  font-size: clamp(24px, 5vw, 36px);
+  color: var(--text-primary);
+  text-align: center;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+/* 商业拆解模式 */
+.quote-business .quote-title {
+  font-family: 'Ma Shan Zheng', cursive;
+  font-size: 26px;
+  color: var(--text-primary);
+  margin-bottom: 20px;
+}
+
+.quote-business .quote-content {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 2;
+  text-align: left;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.quote-business .highlight {
+  color: var(--accent-gold);
+  font-weight: 500;
+}
+
+/* 认知框架模式 */
+.quote-framework .quote-text {
+  font-family: 'Ma Shan Zheng', cursive;
+  font-size: clamp(24px, 5vw, 36px);
+  color: var(--text-primary);
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+/* 实操攻略模式 */
+.quote-guide .quote-title {
+  font-family: 'Ma Shan Zheng', cursive;
+  font-size: 26px;
+  color: var(--text-primary);
+  margin-bottom: 20px;
+}
+
+.quote-guide .step {
+  margin-bottom: 16px;
+}
+
+/* 负面案例模式 */
+.quote-negative::before {
+  content: '警示';
+  display: block;
+  padding: 8px 16px;
+  background: rgba(139, 0, 0, 0.2);
+  border: 1px solid rgba(139, 0, 0, 0.3);
+  border-radius: 4px;
+  color: #b22222;
+  font-size: 12px;
+  margin-bottom: 20px;
+  display: inline-block;
+}
+
+.quote-negative .quote-title {
+  font-family: 'Ma Shan Zheng', cursive;
+  font-size: 24px;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+/* 需验证模式 */
+.quote-caution::before {
+  content: '谨慎参考';
+  display: block;
+  padding: 8px 16px;
+  background: rgba(205, 127, 50, 0.15);
+  border: 1px solid rgba(205, 127, 50, 0.3);
+  border-radius: 4px;
+  color: #cd7f32;
+  font-size: 12px;
+  margin-bottom: 20px;
+  display: inline-block;
+}
+
+.quote-caution .quote-title {
+  font-family: 'Ma Shan Zheng', cursive;
+  font-size: 24px;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+/* ========================================
+   收藏按钮
+   ======================================== */
+.favorite-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1.5px solid var(--text-muted);
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 24px;
+  opacity: 0.4;
+}
+
+.favorite-btn:hover {
+  opacity: 0.8;
+}
+
+.favorite-btn.active {
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 12px rgba(212, 160, 23, 0.3);
+}
+
+.favorite-btn svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: var(--text-primary);
+  stroke-width: 2;
+}
+
+.favorite-btn.active svg {
+  stroke: var(--accent-gold);
+  fill: var(--accent-gold);
+}
+
+/* ========================================
+   心得按钮
+   ======================================== */
+.notes-btn {
+  display: inline-block;
+  padding: 6px 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  font-size: 12px;
+  color: var(--text-muted);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 12px;
+  opacity: 0.4;
+}
+
+.notes-btn:hover {
+  opacity: 0.8;
+  border-color: var(--text-secondary);
+}
+
+/* ========================================
+   编辑按钮
+   ======================================== */
+.edit-btn {
+  display: inline-block;
+  padding: 6px 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  font-size: 12px;
+  color: var(--text-muted);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 12px;
+  margin-left: 8px;
+  opacity: 0.4;
+}
+
+.edit-btn:hover {
+  opacity: 0.8;
+  border-color: var(--text-secondary);
+}
+
+/* ========================================
+   心得展示
+   ======================================== */
+.notes-display {
+  margin-top: 20px;
+  text-align: left;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.note-item {
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border-left: 2px solid var(--text-muted);
+  margin-bottom: 12px;
+  border-radius: 0 4px 4px 0;
+  opacity: 0.7;
+}
+
+.note-item .note-text {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  white-space: pre-wrap;
+  margin-bottom: 6px;
+}
+
+.note-item .note-time {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.note-item .note-actions {
+  margin-top: 8px;
+  display: flex;
+  gap: 12px;
+}
+
+.note-item .note-action {
+  font-size: 11px;
+  color: var(--text-muted);
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.note-item .note-action:hover {
+  opacity: 1;
+  color: var(--text-secondary);
+}
+
+/* ========================================
+   页码指示器
+   ======================================== */
+.page-indicator {
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted);
+  opacity: 0.4;
+  margin-top: 24px;
+}
+
+/* ========================================
+   底部导航栏
+   ======================================== */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  padding: 12px 0;
+  background: linear-gradient(to top, var(--bg-primary) 0%, transparent 100%);
+  z-index: 100;
+  transition: background 0.5s ease, opacity 0.5s ease;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: var(--text-secondary);
+  opacity: 0.4;
+  transition: all 0.3s ease;
+}
+
+.nav-item:hover,
+.nav-item.active {
+  opacity: 1;
+}
+
+.nav-item.active {
+  color: var(--accent-red);
+}
+
+.nav-item.active .nav-icon {
+  color: var(--accent-red);
+}
+
+.nav-icon {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 18px;
+  font-weight: 400;
+  margin-bottom: 2px;
+}
+
+.nav-label {
+  font-size: 11px;
+}
+
+/* 首页底部导航自动淡出 */
+.home-nav {
+  opacity: 0.15;
+}
+
+.home-nav.show {
+  opacity: 1;
+}
+
+/* ========================================
+   返回按钮 - 更明显
+   ======================================== */
+.back-btn {
+  font-size: 14px !important;
+  padding: 8px 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  opacity: 0.8;
+}
+
+.back-btn:hover {
+  opacity: 1;
+  border-color: var(--text-secondary);
+}
+
+/* ========================================
+   分类视图
+   ======================================== */
+.view-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.view-header h2 {
+  font-family: 'Ma Shan Zheng', cursive;
+  font-size: 24px;
+  font-weight: 400;
+  color: var(--text-primary);
+}
+
+.category-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 24px 100px;
+}
+
+.category-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border-subtle);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.category-item:hover {
+  opacity: 0.8;
+}
+
+.category-name {
+  font-size: 16px;
+  color: var(--text-primary);
+}
+
+.category-count {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ========================================
+   搜索视图
+   ======================================== */
+.search-box {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.search-box input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-primary);
+  font-size: 15px;
+  font-family: 'Noto Serif SC', serif;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.search-box input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+
+.search-box input:focus {
+  border-color: var(--text-secondary);
+}
+
+.search-results {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 24px 100px;
+}
+
+.search-hint {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+  opacity: 0.5;
+  margin-top: 40px;
+}
+
+.search-result-item {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border-subtle);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.search-result-item:hover {
+  opacity: 0.8;
+}
+
+.search-result-item .result-text {
+  font-size: 15px;
+  color: var(--text-primary);
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+
+.search-result-item .result-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.search-result-item .result-tag {
+  font-size: 11px;
+  padding: 2px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  color: var(--text-muted);
+}
+
+/* ========================================
+   添加语录视图
+   ======================================== */
+.view-add {
+  overflow-y: auto;
+}
+
+.add-form-container {
+  flex: 1;
+  padding: 24px;
+  padding-bottom: 100px;
+  max-width: 600px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.form-group .required {
+  color: var(--accent-red);
+}
+
+.form-group input[type="text"],
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-primary);
+  font-size: 15px;
+  font-family: 'Noto Serif SC', serif;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.form-group input[type="text"]::placeholder,
+.form-group textarea::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.form-group input[type="text"]:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  border-color: var(--text-secondary);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.form-group select {
+  cursor: pointer;
+}
+
+/* 标签选择器 */
+.tag-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag-option {
+  padding: 6px 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  font-size: 13px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.tag-option:hover {
+  border-color: var(--text-secondary);
+  color: var(--text-secondary);
+}
+
+.tag-option.selected {
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+  background: rgba(212, 160, 23, 0.1);
+}
+
+/* 调性选择器 */
+.tone-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.tone-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.tone-option input {
+  display: none;
+}
+
+.tone-option input:checked + span {
+  color: var(--accent-gold);
+}
+
+.tone-option span {
+  transition: color 0.2s ease;
+}
+
+/* 提交按钮 */
+.submit-btn {
+  width: 100%;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 8px;
+  background: var(--text-muted);
+  color: var(--bg-primary);
+  font-size: 16px;
+  font-family: 'Noto Serif SC', serif;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 16px;
+}
+
+.submit-btn:hover {
+  background: var(--text-secondary);
+}
+
+/* ========================================
+   我的页面样式
+   ======================================== */
+.view-favorites {
+  padding-bottom: 80px;
+}
+
+.my-section {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.my-section-title {
+  font-family: 'Ma Shan Zheng', cursive;
+  font-size: 18px;
+  color: var(--text-secondary);
+  margin: 0 0 12px 0;
+  font-weight: normal;
+}
+
+.theme-options {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.theme-options .theme-btn {
+  padding: 8px 20px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.theme-options .theme-btn:hover {
+  border-color: var(--text-secondary);
+  color: var(--text-primary);
+}
+
+.theme-options .theme-btn.active {
+  border-color: var(--accent-red);
+  color: var(--accent-red);
+}
+
+/* ========================================
+   收藏视图
+   ======================================== */
+.favorites-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+}
+
+.empty-hint {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+  opacity: 0.5;
+  margin-top: 60px;
+}
+
+.favorite-item {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border-subtle);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.favorite-item:hover {
+  opacity: 0.8;
+}
+
+.favorite-item .item-text {
+  font-size: 15px;
+  color: var(--text-primary);
+  line-height: 1.6;
+  margin-bottom: 8px;
+  white-space: pre-line;
+}
+
+.favorite-item .item-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.favorite-item .item-tag {
+  font-size: 11px;
+  padding: 2px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  color: var(--text-muted);
+}
+
+/* ========================================
+   沉浸阅读视图
+   ======================================== */
+.view-immersive {
+  background: var(--bg-primary);
+  overflow-y: auto;
+  padding: 60px 24px 100px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.immersive-back {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 100;
+  opacity: 0.6;
+  padding: 8px 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  background: var(--bg-primary);
+  font-size: 14px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+  font-family: 'Noto Serif SC', serif;
+}
+
+.immersive-back:hover {
+  opacity: 1;
+  border-color: var(--text-secondary);
+}
+
+.immersive-edit-btn {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 100;
+  opacity: 0.6;
+  padding: 8px 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 2px;
+  background: var(--bg-primary);
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Noto Serif SC', serif;
+  letter-spacing: 2px;
+}
+
+.immersive-edit-btn:hover {
+  opacity: 1;
+  border-color: var(--text-secondary);
+  color: var(--text-primary);
+}
+
+.immersive-brand {
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  opacity: 0.4;
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Noto Serif SC', serif;
+  letter-spacing: 4px;
+  user-select: none;
+}
+
+.immersive-brand:hover {
+  opacity: 0.8;
+  color: var(--text-primary);
+}
+
+.immersive-tap-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  cursor: pointer;
+  touch-action: pan-y;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.immersive-content {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 20px 0 80px;
+}
+
+.immersive-fab {
+  position: fixed;
+  bottom: 32px;
+  right: 24px;
+  z-index: 100;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  font-size: 15px;
+  font-family: 'Noto Serif SC', serif;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: all 0.3s ease;
+  display: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.view-immersive .immersive-fab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.immersive-fab:hover {
+  opacity: 1;
+  border-color: var(--text-secondary);
+}
+
+.immersive-title {
+  font-family: 'Ma Shan Zheng', cursive;
+  font-size: clamp(32px, 8vw, 48px);
+  color: var(--text-primary);
+  margin-bottom: 32px;
+  letter-spacing: 4px;
+  line-height: 1.4;
+}
+
+.immersive-warning {
+  padding: 12px 20px;
+  background: rgba(139, 0, 0, 0.15);
+  border: 1px solid rgba(139, 0, 0, 0.3);
+  border-radius: 6px;
+  color: #b22222;
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+.immersive-caution {
+  padding: 12px 20px;
+  background: rgba(205, 127, 50, 0.1);
+  border: 1px solid rgba(205, 127, 50, 0.25);
+  border-radius: 6px;
+  color: #cd7f32;
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+.immersive-text {
+  font-size: 16px;
+  line-height: 2;
+  color: var(--text-secondary);
+}
+
+.immersive-text h1,
+.immersive-text h2,
+.immersive-text h3 {
+  font-family: 'Ma Shan Zheng', cursive;
+  color: var(--text-primary);
+  margin: 24px 0 16px;
+  letter-spacing: 2px;
+}
+
+.immersive-text h1 {
+  font-size: 28px;
+}
+
+.immersive-text h2 {
+  font-size: 24px;
+}
+
+.immersive-text h3 {
+  font-size: 20px;
+}
+
+.immersive-text p {
+  margin-bottom: 16px;
+}
+
+.immersive-text strong {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.immersive-text ul,
+.immersive-text ol {
+  margin: 16px 0;
+  padding-left: 24px;
+}
+
+.immersive-text li {
+  margin-bottom: 8px;
+}
+
+/* ========================================
+   分类详情视图
+   ======================================== */
+.category-quotes {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 24px 100px;
+}
+
+.category-quote-item {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border-subtle);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.category-quote-item:hover {
+  opacity: 0.8;
+}
+
+.category-quote-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.category-quote-item .quote-preview-text {
+  font-size: 15px;
+  color: var(--text-primary);
+  line-height: 1.6;
+  margin-bottom: 8px;
+  white-space: pre-line;
+}
+
+.category-quote-item .quote-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.type-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  color: var(--text-muted);
+}
+
+/* ========================================
+   心得弹窗
+   ======================================== */
+.note-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+  padding: 24px;
+}
+
+.note-modal.active {
+  display: flex;
+}
+
+.note-modal-content {
+  width: 100%;
+  max-width: 480px;
+  background: var(--bg-card);
+  border-radius: 12px;
+  padding: 24px;
+  border: 1px solid var(--border-subtle);
+}
+
+.note-modal-content h3 {
+  font-family: 'Ma Shan Zheng', cursive;
+  font-size: 24px;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+.note-modal-content textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 12px 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-primary);
+  font-size: 15px;
+  font-family: 'Noto Serif SC', serif;
+  outline: none;
+  resize: vertical;
+  margin-bottom: 16px;
+}
+
+.note-modal-content textarea::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.note-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.btn-cancel,
+.btn-save {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: 'Noto Serif SC', serif;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-cancel {
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+}
+
+.btn-cancel:hover {
+  border-color: var(--text-secondary);
+}
+
+.btn-save {
+  background: var(--accent-red);
+  border: none;
+  color: var(--text-primary);
+}
+
+.btn-save:hover {
+  opacity: 0.9;
+}
+
+/* ========================================
+   编辑语录弹窗
+   ======================================== */
+.edit-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+  padding: 24px;
+}
+
+.edit-modal.show {
+  display: flex;
+}
+
+.edit-modal-content {
+  width: 100%;
+  max-width: 480px;
+  background: var(--bg-card);
+  border-radius: 12px;
+  padding: 24px;
+  border: 1px solid var(--border-subtle);
+}
+
+.edit-modal-content h3 {
+  font-family: 'Ma Shan Zheng', cursive;
+  font-size: 24px;
+  color: var(--text-primary);
+  margin-bottom: 20px;
+}
+
+.edit-field {
+  margin-bottom: 16px;
+}
+
+.edit-field label {
+  display: block;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  opacity: 0.6;
+}
+
+.edit-field input,
+.edit-field textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-primary);
+  font-size: 15px;
+  font-family: 'Noto Serif SC', serif;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.edit-field input:focus,
+.edit-field textarea:focus {
+  border-color: var(--text-secondary);
+}
+
+.edit-field textarea {
+  resize: vertical;
+  min-height: 120px;
+  line-height: 1.8;
+}
+
+.edit-field input::placeholder,
+.edit-field textarea::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.edit-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.edit-modal-header h3 {
+  margin: 0;
+}
+
+.edit-trash-btn {
+  background: none;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-family: 'Noto Serif SC', serif;
+  width: auto;
+  height: auto;
+  border-radius: 2px;
+  cursor: pointer;
+  padding: 2px 8px;
+  line-height: 1.4;
+  transition: all 0.3s ease;
+  letter-spacing: 2px;
+}
+
+.edit-trash-btn:hover {
+  color: #a03030;
+  border-color: rgba(160, 48, 48, 0.4);
+  background: rgba(160, 48, 48, 0.06);
+}
+
+.edit-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.btn-delete {
+  display: none;
+}
+
+/* ========================================
+   删除按钮样式（分类详情页）
+   ======================================== */
+.delete-btn {
+  font-size: 12px;
+  color: var(--text-primary);
+  opacity: 0.5;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+  padding: 4px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  background: transparent;
+  font-family: 'Noto Serif SC', serif;
+  align-self: center;
+}
+
+.delete-btn:hover {
+  opacity: 1;
+  color: #b22222;
+  border-color: rgba(178, 34, 34, 0.3);
+  background: rgba(178, 34, 34, 0.05);
+}
+
+/* ========================================
+   用户语录标识
+   ======================================== */
+.user-quote-badge {
+  padding: 2px 8px;
+  background: rgba(178, 34, 34, 0.2);
+  border: 1px solid rgba(178, 34, 34, 0.3);
+  border-radius: 10px;
+  font-size: 11px;
+  color: var(--accent-red);
+}
+
+/* ========================================
+   响应式调整
+   ======================================== */
+@media (max-width: 480px) {
+  .view-header {
+    padding: 16px 16px;
+  }
+  
+  .my-section {
+    padding: 16px;
+  }
+  
+  .category-list,
+  .search-results,
+  .category-quotes {
+    padding: 12px 16px 100px;
+  }
+  
+  .add-form-container {
+    padding: 16px;
+    padding-bottom: 100px;
+  }
+}
