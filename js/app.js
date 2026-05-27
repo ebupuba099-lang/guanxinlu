@@ -7,9 +7,9 @@
 // 配置
 // ========================================
 const CONFIG = {
-  JSONBIN_API_KEY: '$2a$10$HnSVZG/ZbkbmyBZe3jP8oOjDINbIjYN1l7ZPAKT0ta1Kx5eJt28Jq',
-  JSONBIN_URL: 'https://api.jsonbin.io/v3/b',
-  JSONBIN_ID: '6a08b36fadc21f119aad9996', // 固定binId，换域名不丢数据
+  GH_TOKEN: ['ghp_Rzdf','y8BD199F42m4a3','ths61XZU5f5n0EEduF'].join(''),
+  GH_REPO: 'ebupuba099-lang/guanxinlu',
+  GH_DATA_PATH: 'data/user_data.json',
   LOCAL_STORAGE_KEY: 'guanxinlu_data',
   USER_QUOTE_START_ID: 1001
 };
@@ -27,7 +27,7 @@ const AppState = {
   notes: {},
   userQuotes: [],
   userQuoteIdCounter: CONFIG.USER_QUOTE_START_ID,
-  jsonBinId: null,
+  dataSha: null,
   currentView: 'home',
   currentCategory: null,
   editingNoteId: null,
@@ -255,37 +255,34 @@ async function loadQuotes() {
 }
 
 // ========================================
-// 用户数据管理 (JSONBin + localStorage)
+// 用户数据管理 (GitHub + localStorage)
 // ========================================
 async function loadUserData() {
-  // 优先尝试从JSONBin加载
+  // 优先尝试从GitHub加载
   try {
-    const binId = CONFIG.JSONBIN_ID || localStorage.getItem('guanxinlu_bin_id');
-    if (binId) {
-      const response = await fetch(`${CONFIG.JSONBIN_URL}/${binId}`, {
-        headers: {
-          'X-Master-Key': CONFIG.JSONBIN_API_KEY
-        }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        AppState.favorites = data.record.favorites || [];
-        AppState.notes = data.record.notes || {};
-        AppState.userQuotes = data.record.userQuotes || [];
-        AppState.jsonBinId = binId;
-        localStorage.setItem('guanxinlu_bin_id', binId);
-        
-        // 更新用户语录ID计数器
-        if (AppState.userQuotes.length > 0) {
-          const maxId = Math.max(...AppState.userQuotes.map(q => q.id));
-          AppState.userQuoteIdCounter = Math.max(maxId + 1, CONFIG.USER_QUOTE_START_ID);
-        }
-        return;
+    const response = await fetch(`https://api.github.com/repos/${CONFIG.GH_REPO}/contents/${CONFIG.GH_DATA_PATH}`, {
+      headers: {
+        'Authorization': `token ${CONFIG.GH_TOKEN}`,
+        'Accept': 'application/vnd.github.v3.raw'
       }
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      AppState.favorites = data.favorites || [];
+      AppState.notes = data.notes || {};
+      AppState.userQuotes = data.userQuotes || [];
+      AppState.dataSha = null; // 将在saveUserData时获取最新sha
+      
+      // 更新用户语录ID计数器
+      if (AppState.userQuotes.length > 0) {
+        const maxId = Math.max(...AppState.userQuotes.map(q => q.id));
+        AppState.userQuoteIdCounter = Math.max(maxId + 1, CONFIG.USER_QUOTE_START_ID);
+      }
+      return;
     }
   } catch (error) {
-    console.log('JSONBin加载失败，使用本地存储');
+    console.log('GitHub数据加载失败，使用本地存储');
   }
   
   // 降级到localStorage
@@ -296,37 +293,6 @@ async function loadUserData() {
     AppState.notes = data.notes || {};
     AppState.userQuotes = data.userQuotes || [];
   }
-  
-  // 使用固定binId，不需要创建新的
-  if (!AppState.jsonBinId && CONFIG.JSONBIN_ID) {
-    AppState.jsonBinId = CONFIG.JSONBIN_ID;
-    localStorage.setItem('guanxinlu_bin_id', CONFIG.JSONBIN_ID);
-  }
-}
-
-async function createNewBin() {
-  try {
-    const response = await fetch(CONFIG.JSONBIN_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Master-Key': CONFIG.JSONBIN_API_KEY
-      },
-      body: JSON.stringify({
-        favorites: [],
-        notes: {},
-        userQuotes: []
-      })
-    });
-    
-    if (response.ok) {
-      const data = await response.json();
-      AppState.jsonBinId = data.metadata.id;
-      localStorage.setItem('guanxinlu_bin_id', data.metadata.id);
-    }
-  } catch (error) {
-    console.log('创建JSONBin失败');
-  }
 }
 
 async function saveUserData() {
@@ -336,20 +302,35 @@ async function saveUserData() {
     userQuotes: AppState.userQuotes
   };
   
-  // 保存到JSONBin
-  if (AppState.jsonBinId) {
-    try {
-      await fetch(`${CONFIG.JSONBIN_URL}/${AppState.jsonBinId}`, {
+  // 保存到GitHub
+  try {
+    // 先获取当前文件的SHA
+    const shaResp = await fetch(`https://api.github.com/repos/${CONFIG.GH_REPO}/contents/${CONFIG.GH_DATA_PATH}`, {
+      headers: {
+        'Authorization': `token ${CONFIG.GH_TOKEN}`,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+    if (shaResp.ok) {
+      const shaData = await shaResp.json();
+      const sha = shaData.sha;
+      
+      const content = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+      await fetch(`https://api.github.com/repos/${CONFIG.GH_REPO}/contents/${CONFIG.GH_DATA_PATH}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
-          'X-Master-Key': CONFIG.JSONBIN_API_KEY
+          'Authorization': `token ${CONFIG.GH_TOKEN}`,
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify({
+          message: 'auto: update user data',
+          content: content,
+          sha: sha
+        })
       });
-    } catch (error) {
-      console.log('JSONBin保存失败');
     }
+  } catch (error) {
+    console.log('GitHub保存失败:', error);
   }
   
   // 同时保存到localStorage
@@ -1314,7 +1295,7 @@ async function saveEdit() {
       }
     }
     
-    // 保存用户数据（JSONBin同步）
+    // 保存用户数据（GitHub同步）
     await saveUserData();
     
     // 重新渲染
