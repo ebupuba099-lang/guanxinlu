@@ -258,7 +258,18 @@ async function loadQuotes() {
 // 用户数据管理 (GitHub + localStorage)
 // ========================================
 async function loadUserData() {
-  // 优先尝试从GitHub加载
+  // 策略：本地优先，云端补充
+  // 先加载localStorage（最快最可靠）
+  let localData = null;
+  const localRaw = localStorage.getItem(CONFIG.LOCAL_STORAGE_KEY);
+  if (localRaw) {
+    try {
+      localData = JSON.parse(localRaw);
+    } catch(e) {}
+  }
+  
+  // 再尝试从GitHub加载
+  let cloudData = null;
   try {
     const response = await fetch(`https://api.github.com/repos/${CONFIG.GH_REPO}/contents/${CONFIG.GH_DATA_PATH}`, {
       headers: {
@@ -268,30 +279,32 @@ async function loadUserData() {
     });
     
     if (response.ok) {
-      const data = await response.json();
-      AppState.favorites = data.favorites || [];
-      AppState.notes = data.notes || {};
-      AppState.userQuotes = data.userQuotes || [];
-      AppState.dataSha = null; // 将在saveUserData时获取最新sha
-      
-      // 更新用户语录ID计数器
-      if (AppState.userQuotes.length > 0) {
-        const maxId = Math.max(...AppState.userQuotes.map(q => q.id));
-        AppState.userQuoteIdCounter = Math.max(maxId + 1, CONFIG.USER_QUOTE_START_ID);
-      }
-      return;
+      cloudData = await response.json();
     }
   } catch (error) {
     console.log('GitHub数据加载失败，使用本地存储');
   }
   
-  // 降级到localStorage
-  const localData = localStorage.getItem(CONFIG.LOCAL_STORAGE_KEY);
-  if (localData) {
-    const data = JSON.parse(localData);
+  // 合并策略：本地有数据就用本地的（保证不丢失），否则用云端的
+  const data = localData || cloudData;
+  
+  if (data) {
     AppState.favorites = data.favorites || [];
     AppState.notes = data.notes || {};
     AppState.userQuotes = data.userQuotes || [];
+    AppState.dataSha = null;
+    
+    // 更新用户语录ID计数器
+    if (AppState.userQuotes.length > 0) {
+      const maxId = Math.max(...AppState.userQuotes.map(q => q.id));
+      AppState.userQuoteIdCounter = Math.max(maxId + 1, CONFIG.USER_QUOTE_START_ID);
+    }
+  }
+  
+  // 如果本地有数据但云端没有（或云端较旧），同步本地数据到云端
+  if (localData && !cloudData) {
+    console.log('本地数据优先，尝试同步到云端');
+    await saveUserData();
   }
 }
 
@@ -302,9 +315,11 @@ async function saveUserData() {
     userQuotes: AppState.userQuotes
   };
   
-  // 保存到GitHub
+  // 先保存到localStorage（确保本地一定成功）
+  localStorage.setItem(CONFIG.LOCAL_STORAGE_KEY, JSON.stringify(data));
+  
+  // 再尝试保存到GitHub
   try {
-    // 先获取当前文件的SHA
     const shaResp = await fetch(`https://api.github.com/repos/${CONFIG.GH_REPO}/contents/${CONFIG.GH_DATA_PATH}`, {
       headers: {
         'Authorization': `token ${CONFIG.GH_TOKEN}`,
@@ -315,8 +330,8 @@ async function saveUserData() {
       const shaData = await shaResp.json();
       const sha = shaData.sha;
       
-      const content = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
-      await fetch(`https://api.github.com/repos/${CONFIG.GH_REPO}/contents/${CONFIG.GH_DATA_PATH}`, {
+      const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+      const putResp = await fetch(`https://api.github.com/repos/${CONFIG.GH_REPO}/contents/${CONFIG.GH_DATA_PATH}`, {
         method: 'PUT',
         headers: {
           'Authorization': `token ${CONFIG.GH_TOKEN}`,
@@ -324,17 +339,20 @@ async function saveUserData() {
         },
         body: JSON.stringify({
           message: 'auto: update user data',
-          content: content,
+          content: encoded,
           sha: sha
         })
       });
+      if (putResp.ok) {
+        console.log('GitHub保存成功');
+      } else {
+        const errText = await putResp.text();
+        console.log('GitHub保存失败:', putResp.status, errText);
+      }
     }
   } catch (error) {
-    console.log('GitHub保存失败:', error);
+    console.log('GitHub保存异常:', error);
   }
-  
-  // 同时保存到localStorage
-  localStorage.setItem(CONFIG.LOCAL_STORAGE_KEY, JSON.stringify(data));
 }
 
 // ========================================
