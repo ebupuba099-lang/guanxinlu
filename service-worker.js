@@ -9,6 +9,7 @@ const urlsToCache = [
   './index.html',
   './css/style.css',
   './js/app.js',
+  './js/sync.js',
   './data/quotes.json'
 ];
 

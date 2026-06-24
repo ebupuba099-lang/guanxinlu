@@ -1,5 +1,5 @@
 /* ========================================
-   观心录 - 沉浸式古风语录网站 v3
+   观心录 - 沉浸式古风语录网站 v4
    ======================================== */
 
 /* CSS Variables - 默认墨夜主题 */
@@ -1232,6 +1232,17 @@ body {
 .immersive-fab:hover {
   opacity: 1;
   border-color: var(--text-secondary);
+}
+
+/* 沉浸视图底部导航 - 始终可见 */
+.immersive-nav {
+  opacity: 0.5;
+  background: linear-gradient(to top, var(--bg-primary) 40%, transparent 100%);
+  transition: opacity 0.3s ease;
+}
+
+.immersive-nav:hover {
+  opacity: 1;
 }
 
 .immersive-title {

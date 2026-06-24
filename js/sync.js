@@ -28,17 +28,17 @@ const SyncManager = {
 
   /**
    * 同设备多标签页实时同步
+   * 通过在 persistUserData 完成后广播，而非覆盖 saveUserData，避免时序风险
    */
   setupBroadcastChannel() {
     if (!('BroadcastChannel' in window)) return;
 
-    const channel = new BroadcastChannel('guanxinlu_sync');
+    this._channel = new BroadcastChannel('guanxinlu_sync');
 
     // 监听其他标签页的数据变更
-    channel.addEventListener('message', (event) => {
+    this._channel.addEventListener('message', (event) => {
       if (event.data.type === 'data_changed') {
         console.log('检测到其他标签页数据变更，重新加载');
-        // 从 localStorage 重新加载数据
         const localRaw = localStorage.getItem('guanxinlu_data');
         if (localRaw) {
           try {
@@ -60,11 +60,13 @@ const SyncManager = {
       }
     });
 
-    // 数据变更时广播通知
-    const originalSave = saveUserData;
-    saveUserData = async function() {
-      await originalSave();
-      channel.postMessage({ type: 'data_changed', time: Date.now() });
+    // 在 persistUserData 完成时广播通知（不覆盖原函数，避免引用冲突）
+    const originalPersist = persistUserData;
+    persistUserData = function() {
+      originalPersist();
+      if (SyncManager._channel) {
+        SyncManager._channel.postMessage({ type: 'data_changed', time: Date.now() });
+      }
     };
   },
 

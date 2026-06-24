@@ -191,8 +191,9 @@ function setupHomeNavAutoHide() {
 // 主题管理
 // ========================================
 function loadTheme() {
-  localStorage.removeItem('guanxinlu_theme');
-  setTheme('paper');
+  const saved = localStorage.getItem('guanxinlu_theme');
+  const theme = saved || 'paper';
+  setTheme(theme);
 }
 
 function setTheme(theme) {
@@ -593,6 +594,11 @@ function switchView(viewName) {
       homeNav.classList.add('show');
       homeNav.style.opacity = '';
     }
+  }
+
+  // 离开沉浸视图时清理状态
+  if (AppState.currentView === 'immersive' && viewName !== 'immersive') {
+    immersiveQuote = null;
   }
 
   switch (viewName) {
