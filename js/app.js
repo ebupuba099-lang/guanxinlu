@@ -183,7 +183,18 @@ function setupHomeNavAutoHide() {
     }, 3000);
   };
 
+  // 移动端触摸
   Elements.quoteContainer.addEventListener('touchstart', showNav, { passive: true });
+  // PC端鼠标移动到底部区域
+  document.addEventListener('mousemove', (e) => {
+    if (AppState.currentView !== 'home') return;
+    const windowHeight = window.innerHeight;
+    // 鼠标接近底部100px区域时显示导航
+    if (e.clientY > windowHeight - 120) {
+      showNav();
+    }
+  }, { passive: true });
+
   showNav();
 }
 
