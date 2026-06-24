@@ -3,7 +3,7 @@
  * 网络优先 + 缓存回退策略，确保用户始终拿到最新版本
  */
 
-const CACHE_NAME = 'guanxinlu-v34';
+const CACHE_NAME = 'guanxinlu-v35';
 const urlsToCache = [
   './',
   './index.html',

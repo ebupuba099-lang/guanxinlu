@@ -237,6 +237,31 @@ body {
   touch-action: pan-y;
 }
 
+/* 🆕 PC端滚轮切换提示 */
+.scroll-hint {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: var(--text-muted);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s ease;
+  letter-spacing: 2px;
+  z-index: 90;
+}
+
+.scroll-hint.visible {
+  opacity: 0.35;
+}
+
+@media (pointer: coarse) {
+  .scroll-hint {
+    display: none;
+  }
+}
+
 .quote-card {
   width: 100%;
   text-align: center;

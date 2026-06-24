@@ -1,0 +1,40 @@
+# 观心录 - 用户数据同步工作流
+# 当 data/user_data.json 被 push 到仓库时自动触发
+# 实现多设备之间的数据同步
+
+name: 同步用户数据
+
+on:
+  push:
+    paths:
+      - 'data/user_data.json'
+  # 允许手动触发
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 验证用户数据完整性
+        run: |
+          if [ -f data/user_data.json ]; then
+            echo "✅ 用户数据文件存在"
+            # 验证 JSON 格式
+            python3 -m json.tool data/user_data.json > /dev/null && echo "✅ JSON 格式正确" || echo "⚠️ JSON 格式异常"
+          else
+            echo "ℹ️ 没有用户数据文件，跳过同步"
+          fi
+
+      - name: 部署到 GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
+          publish_branch: gh-pages
+          force_orphan: false
+          keep_files: true
