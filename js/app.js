@@ -90,35 +90,24 @@ const Elements = {
 // 初始化
 // ========================================
 async function init() {
-  // 注销旧 Service Worker 并清除缓存
-  if ('serviceWorker' in navigator) {
-    const regs = await navigator.serviceWorker.getRegistrations();
-    for (const reg of regs) {
-      await reg.unregister();
-    }
-    if ('caches' in window) {
-      const names = await caches.keys();
-      for (const name of names) {
-        await caches.delete(name);
-      }
-    }
-  }
-
   // 注册 Service Worker（网络优先策略）
   if ('serviceWorker' in navigator) {
     try {
       const registration = await navigator.serviceWorker.register('./service-worker.js', {
         updateViaCache: 'none'
       });
+      // 检测到新版本 SW 时，等用户下次访问自然更新，避免强制刷新导致闪烁
       registration.addEventListener('updatefound', () => {
         const newWorker = registration.installing;
-        newWorker.addEventListener('statechange', () => {
-          if (newWorker.state === 'activated') {
-            window.location.reload();
-          }
-        });
+        if (newWorker) {
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              // 有新版本可用，但不强制刷新，让用户自然更新
+              console.log('新版本已就绪，下次访问将自动更新');
+            }
+          });
+        }
       });
-      registration.update();
     } catch (error) {
       console.log('Service Worker 注册失败:', error);
     }
