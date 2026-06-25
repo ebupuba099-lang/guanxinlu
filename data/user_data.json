@@ -10,19 +10,7 @@
         "行事"
       ],
       "isOverride": true
-    },
-    {
-      "id": 1002,
-      "type": "business",
-      "title": "柔柔弱弱人",
-      "text": "柔柔弱弱人",
-      "tags": [
-        "处世"
-      ],
-      "tone": "positive",
-      "createdAt": "2026-06-25T03:47:02.373Z",
-      "isUserCreated": true
     }
   ],
-  "lastSaved": "2026-06-25T03:47:45.047Z"
+  "lastSaved": "2026-06-25T03:47:49.717Z"
 }
