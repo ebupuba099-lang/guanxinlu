@@ -12,16 +12,6 @@
       "isOverride": true
     },
     {
-      "id": 1001,
-      "type": "debate",
-      "title": "11",
-      "text": "11æµè¯",
-      "tags": [],
-      "tone": "positive",
-      "createdAt": "2026-06-25T03:20:36.334Z",
-      "isUserCreated": true
-    },
-    {
       "id": 1002,
       "type": "business",
       "title": "柔柔弱弱人",
@@ -34,5 +24,5 @@
       "isUserCreated": true
     }
   ],
-  "lastSaved": "2026-06-25T03:47:06.377Z"
+  "lastSaved": "2026-06-25T03:47:41.636Z"
 }
