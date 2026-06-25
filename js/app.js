@@ -398,7 +398,7 @@ function setupBeforeUnload() {
 /**
  * 持久化用户数据到 localStorage + GitHub 云端
  */
-function persistUserData() {
+async function persistUserData() {
   const data = {
     favorites: AppState.favorites,
     notes: AppState.notes,
@@ -417,8 +417,8 @@ function persistUserData() {
     console.error('保存本地数据失败:', e);
   }
 
-  // 同步到 GitHub
-  syncToGitHub(jsonStr, data.lastSaved);
+  // 同步到 GitHub（等待完成）
+  await syncToGitHub(jsonStr, data.lastSaved);
 }
 
 /**
@@ -471,7 +471,7 @@ async function syncToGitHub(jsonContent, lastSaved) {
 async function saveUserData() {
   markDataChanged();
   // 立即保存重要操作
-  persistUserData();
+  await persistUserData();
 }
 
 // ========================================
@@ -1111,7 +1111,7 @@ function getAllCategories() {
       quote.tags.forEach(tag => cats.add(tag));
     }
   });
-  return Array.from(cats).sort();
+  return Array.from(cats).sort((a, b) => a.localeCompare(b, 'zh-CN'));
 }
 
 function getCategoryCount(category) {
