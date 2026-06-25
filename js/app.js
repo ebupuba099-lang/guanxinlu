@@ -265,7 +265,13 @@ async function loadUserData() {
     });
     if (resp.ok) {
       const file = await resp.json();
-      cloudData = JSON.parse(atob(file.content));
+      // 使用 TextDecoder 正确解码 base64 → UTF-8，避免 Safari Latin-1 乱码
+      const binaryStr = atob(file.content);
+      const bytes = new Uint8Array(binaryStr.length);
+      for (let i = 0; i < binaryStr.length; i++) {
+        bytes[i] = binaryStr.charCodeAt(i);
+      }
+      cloudData = JSON.parse(new TextDecoder('utf-8').decode(bytes));
       console.log('✅ 从云端加载数据成功');
     } else {
       console.log('⚠️ 云端数据加载失败，使用本地数据');
@@ -442,8 +448,11 @@ async function syncToGitHub(jsonContent, lastSaved) {
       sha = file.sha;
     }
 
-    // 上传文件
-    const content = btoa(unescape(encodeURIComponent(jsonContent)));
+    // 上传文件（使用 TextEncoder 确保 UTF-8 base64 编码正确）
+    const utf8Bytes = new TextEncoder().encode(jsonContent);
+    let binaryStr = '';
+    utf8Bytes.forEach(byte => binaryStr += String.fromCharCode(byte));
+    const content = btoa(binaryStr);
     const putResp = await fetch(CONFIG.GH_API_BASE, {
       method: 'PUT',
       headers: {
