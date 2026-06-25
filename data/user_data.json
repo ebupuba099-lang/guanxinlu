@@ -3,14 +3,13 @@
   "notes": {},
   "userQuotes": [
     {
-      "id": 1001,
-      "type": "debate",
-      "title": "11",
-      "text": "11测试",
-      "tags": [],
-      "tone": "positive",
-      "createdAt": "2026-06-25T03:20:36.334Z",
-      "isUserCreated": true
+      "id": 1,
+      "title": "",
+      "text": "每日三动\n\n行动\n\n运动\n\n走动",
+      "tags": [
+        "行事"
+      ],
+      "isOverride": true
     },
     {
       "id": 1003,
@@ -36,5 +35,5 @@
       "isUserCreated": true
     }
   ],
-  "lastSaved": "2026-06-25T06:22:07.733Z"
+  "lastSaved": "2026-06-25T06:22:27.655Z"
 }
