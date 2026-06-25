@@ -10,7 +10,20 @@
         "行事"
       ],
       "isOverride": true
+    },
+    {
+      "id": 1003,
+      "type": "short",
+      "title": "",
+      "text": "你的每一个念头都有代价，普通人连念头都有试错成本，影响的是你的注意力",
+      "tags": [
+        "处世",
+        "认知"
+      ],
+      "tone": "positive",
+      "createdAt": "2026-06-25T03:48:32.373Z",
+      "isUserCreated": true
     }
   ],
-  "lastSaved": "2026-06-25T03:47:49.717Z"
+  "lastSaved": "2026-06-25T03:48:32.373Z"
 }
