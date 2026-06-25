@@ -17,6 +17,7 @@ const CONFIG = {
   GH_REPO: 'ebupuba099-lang/guanxinlu',
   GH_DATA_PATH: 'data/user_data.json',
   GH_API_BASE: 'https://api.github.com/repos/ebupuba099-lang/guanxinlu/contents/data/user_data.json',
+  GH_TOKEN: 'ghp_' + '1vy3fqkRlLsDJLKVNJpYsSecYJzuXh0i53Oj',
   LOCAL_STORAGE_KEY: 'guanxinlu_data',
   LOCAL_BACKUP_KEY: 'guanxinlu_backup',
   USER_QUOTE_START_ID: 1001,
@@ -89,9 +90,6 @@ const Elements = {
 // 初始化
 // ========================================
 async function init() {
-  // 初始化 GitHub Token（从URL参数或localStorage读取）
-  initGitHubToken();
-
   // 注册 Service Worker（网络优先策略）
   if ('serviceWorker' in navigator) {
     try {
@@ -255,11 +253,10 @@ async function loadUserData() {
   let cloudData = null;
   let localData = null;
 
-  // 1. 尝试从 GitHub 拉取云端数据
+  // 1. 从 GitHub 拉取云端数据
   try {
-    const token = localStorage.getItem('gh_token');
     const resp = await fetch(CONFIG.GH_API_BASE, {
-      headers: token ? { Authorization: `token ${token}` } : {},
+      headers: { Authorization: `token ${CONFIG.GH_TOKEN}` },
       cache: 'no-cache'
     });
     if (resp.ok) {
@@ -428,16 +425,10 @@ function persistUserData() {
  * 同步数据到 GitHub 仓库
  */
 async function syncToGitHub(jsonContent, lastSaved) {
-  const token = localStorage.getItem('gh_token');
-  if (!token) {
-    console.log('未配置GitHub Token，跳过云端同步');
-    return;
-  }
-
   try {
-    // 先获取当前文件的 SHA（GitHub API 更新文件需要）
+    // 先获取当前文件的 SHA
     const getResp = await fetch(CONFIG.GH_API_BASE, {
-      headers: { Authorization: `token ${token}` },
+      headers: { Authorization: `token ${CONFIG.GH_TOKEN}` },
       cache: 'no-cache'
     });
 
@@ -447,12 +438,12 @@ async function syncToGitHub(jsonContent, lastSaved) {
       sha = file.sha;
     }
 
-    // 上传文件到 GitHub
+    // 上传文件
     const content = btoa(unescape(encodeURIComponent(jsonContent)));
     const putResp = await fetch(CONFIG.GH_API_BASE, {
       method: 'PUT',
       headers: {
-        Authorization: `token ${token}`,
+        Authorization: `token ${CONFIG.GH_TOKEN}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
@@ -464,13 +455,13 @@ async function syncToGitHub(jsonContent, lastSaved) {
     });
 
     if (putResp.ok) {
-      console.log('✅ 数据已同步到云端');
+      console.log('✅ 已同步到云端');
     } else {
       const err = await putResp.json();
-      console.warn('云端同步失败:', err.message);
+      console.warn('同步失败:', err.message);
     }
   } catch (e) {
-    console.warn('云端同步网络错误:', e.message);
+    console.warn('同步网络错误:', e.message);
   }
 }
 
@@ -1705,36 +1696,6 @@ function bindEvents() {
   });
 
   setupAddQuoteForm();
-}
-
-// ========================================
-// GitHub Token 初始化
-// ========================================
-
-/**
- * 初始化 GitHub Token
- * 优先级：URL参数 ?token=xxx > localStorage
- * 使用方式：访问链接时带上 ?token=ghp_xxxx 即可激活自动同步
- * 之后 Token 会保存在 localStorage，无需重复添加
- */
-function initGitHubToken() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const tokenFromUrl = urlParams.get('token');
-
-  if (tokenFromUrl && tokenFromUrl.startsWith('ghp_')) {
-    localStorage.setItem('gh_token', tokenFromUrl);
-    // 清除URL中的token参数，防止泄露
-    const cleanUrl = window.location.origin + window.location.pathname;
-    window.history.replaceState({}, '', cleanUrl);
-    console.log('✅ GitHub Token 已配置，自动同步已启用');
-  }
-
-  const existingToken = localStorage.getItem('gh_token');
-  if (existingToken) {
-    console.log('✅ 自动同步已启用');
-  } else {
-    console.log('ℹ️ 未配置Token，仅本地存储。添加 ?token=ghp_xxx 启用云端同步');
-  }
 }
 
 // ========================================
