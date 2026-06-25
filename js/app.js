@@ -14,15 +14,14 @@
 // 配置
 // ========================================
 const CONFIG = {
-  // ⚠️ 安全改进：不再使用 GitHub Token，用户数据仅存本地
-  // 如需跨设备同步，请使用 GitHub Actions 自动化处理
   GH_REPO: 'ebupuba099-lang/guanxinlu',
   GH_DATA_PATH: 'data/user_data.json',
+  GH_API_BASE: 'https://api.github.com/repos/ebupuba099-lang/guanxinlu/contents/data/user_data.json',
   LOCAL_STORAGE_KEY: 'guanxinlu_data',
-  LOCAL_BACKUP_KEY: 'guanxinlu_backup', // 备份键
+  LOCAL_BACKUP_KEY: 'guanxinlu_backup',
   USER_QUOTE_START_ID: 1001,
-  AUTO_SAVE_INTERVAL: 5000, // 5秒防抖自动保存
-  SYNC_DEBOUNCE_MS: 300,   // 同步防抖
+  AUTO_SAVE_INTERVAL: 5000,
+  SYNC_DEBOUNCE_MS: 300,
 };
 
 // ========================================
@@ -90,6 +89,9 @@ const Elements = {
 // 初始化
 // ========================================
 async function init() {
+  // 初始化 GitHub Token（从URL参数或localStorage读取）
+  initGitHubToken();
+
   // 注册 Service Worker（网络优先策略）
   if ('serviceWorker' in navigator) {
     try {
@@ -246,47 +248,104 @@ async function loadQuotes() {
 
 /**
  * 加载用户数据
- * 优先级：localStorage > 备份localStorage
- * 数据安全：每次加载后自动创建备份
+ * 优先级：GitHub 云端 > localStorage > 备份localStorage
+ * 策略：从GitHub拉取最新数据，与本地合并（云端优先，本地补充）
  */
 async function loadUserData() {
+  let cloudData = null;
   let localData = null;
-  const localRaw = localStorage.getItem(CONFIG.LOCAL_STORAGE_KEY);
 
+  // 1. 尝试从 GitHub 拉取云端数据
+  try {
+    const token = localStorage.getItem('gh_token');
+    const resp = await fetch(CONFIG.GH_API_BASE, {
+      headers: token ? { Authorization: `token ${token}` } : {},
+      cache: 'no-cache'
+    });
+    if (resp.ok) {
+      const file = await resp.json();
+      cloudData = JSON.parse(atob(file.content));
+      console.log('✅ 从云端加载数据成功');
+    } else {
+      console.log('⚠️ 云端数据加载失败，使用本地数据');
+    }
+  } catch (e) {
+    console.log('⚠️ 云端连接失败:', e.message);
+  }
+
+  // 2. 加载本地数据
+  const localRaw = localStorage.getItem(CONFIG.LOCAL_STORAGE_KEY);
   if (localRaw) {
     try {
       localData = JSON.parse(localRaw);
     } catch (e) {
       console.warn('localStorage 数据损坏，尝试从备份恢复');
-      // 尝试从备份恢复
       const backupRaw = localStorage.getItem(CONFIG.LOCAL_BACKUP_KEY);
       if (backupRaw) {
         try {
           localData = JSON.parse(backupRaw);
-          // 恢复主存储
           localStorage.setItem(CONFIG.LOCAL_STORAGE_KEY, backupRaw);
-          showToast('数据已从备份恢复');
         } catch (e2) {
-          console.error('备份数据也损坏，使用空数据');
+          console.error('备份数据也损坏');
         }
       }
     }
   }
 
-  if (localData) {
-    AppState.favorites = localData.favorites || [];
-    AppState.notes = localData.notes || {};
-    AppState.userQuotes = localData.userQuotes || [];
+  // 3. 合并数据：云端优先，本地补充（取并集）
+  let merged = mergeUserData(cloudData, localData);
 
-    // 更新用户语录ID计数器
-    if (AppState.userQuotes.length > 0) {
-      const maxId = Math.max(...AppState.userQuotes.map(q => q.id));
-      AppState.userQuoteIdCounter = Math.max(maxId + 1, CONFIG.USER_QUOTE_START_ID);
-    }
+  // 4. 应用合并后的数据
+  AppState.favorites = merged.favorites || [];
+  AppState.notes = merged.notes || {};
+  AppState.userQuotes = merged.userQuotes || [];
 
-    // 创建备份
-    createBackup(localData);
+  if (AppState.userQuotes.length > 0) {
+    const maxId = Math.max(...AppState.userQuotes.map(q => q.id));
+    AppState.userQuoteIdCounter = Math.max(maxId + 1, CONFIG.USER_QUOTE_START_ID);
   }
+
+  createBackup(merged);
+}
+
+/**
+ * 合并云端和本地用户数据（取并集，去重，更新优先）
+ */
+function mergeUserData(cloud, local) {
+  if (!cloud && !local) return {};
+  if (!cloud) return local;
+  if (!local) return cloud;
+
+  // 合并 userQuotes（按ID去重，取 updatedAt 更新的版本）
+  const quotesMap = new Map();
+  [...(local.userQuotes || []), ...(cloud.userQuotes || [])].forEach(q => {
+    const existing = quotesMap.get(q.id);
+    if (!existing || new Date(q.createdAt || 0) > new Date(existing.createdAt || 0)) {
+      quotesMap.set(q.id, q);
+    }
+  });
+
+  // 合并 notes（深层合并，不覆盖）
+  const notes = { ...(local.notes || {}) };
+  if (cloud.notes) {
+    for (const [quoteId, cloudNotes] of Object.entries(cloud.notes)) {
+      if (!notes[quoteId]) {
+        notes[quoteId] = cloudNotes;
+      } else {
+        const existingIds = new Set(notes[quoteId].map(n => n.id));
+        cloudNotes.forEach(cn => {
+          if (!existingIds.has(cn.id)) {
+            notes[quoteId].push(cn);
+          }
+        });
+      }
+    }
+  }
+
+  // 合并 favorites（去重并集）
+  const favorites = [...new Set([...(local.favorites || []), ...(cloud.favorites || [])])];
+
+  return { favorites, notes, userQuotes: Array.from(quotesMap.values()) };
 }
 
 /**
@@ -340,7 +399,7 @@ function setupBeforeUnload() {
 }
 
 /**
- * 持久化用户数据到 localStorage（带备份）
+ * 持久化用户数据到 localStorage + GitHub 云端
  */
 function persistUserData() {
   const data = {
@@ -350,16 +409,68 @@ function persistUserData() {
     lastSaved: new Date().toISOString()
   };
 
+  const jsonStr = JSON.stringify(data, null, 2);
+
   try {
-    const jsonStr = JSON.stringify(data);
     localStorage.setItem(CONFIG.LOCAL_STORAGE_KEY, jsonStr);
-    // 同时创建备份
     createBackup(data);
     AppState.lastSavedSnapshot = jsonStr;
-    console.log('数据已保存');
+    console.log('数据已保存到本地');
   } catch (e) {
-    console.error('保存数据失败:', e);
-    showToast('保存失败，请检查浏览器存储空间');
+    console.error('保存本地数据失败:', e);
+  }
+
+  // 同步到 GitHub
+  syncToGitHub(jsonStr, data.lastSaved);
+}
+
+/**
+ * 同步数据到 GitHub 仓库
+ */
+async function syncToGitHub(jsonContent, lastSaved) {
+  const token = localStorage.getItem('gh_token');
+  if (!token) {
+    console.log('未配置GitHub Token，跳过云端同步');
+    return;
+  }
+
+  try {
+    // 先获取当前文件的 SHA（GitHub API 更新文件需要）
+    const getResp = await fetch(CONFIG.GH_API_BASE, {
+      headers: { Authorization: `token ${token}` },
+      cache: 'no-cache'
+    });
+
+    let sha = null;
+    if (getResp.ok) {
+      const file = await getResp.json();
+      sha = file.sha;
+    }
+
+    // 上传文件到 GitHub
+    const content = btoa(unescape(encodeURIComponent(jsonContent)));
+    const putResp = await fetch(CONFIG.GH_API_BASE, {
+      method: 'PUT',
+      headers: {
+        Authorization: `token ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: `sync: ${lastSaved}`,
+        content: content,
+        sha: sha,
+        branch: 'main'
+      })
+    });
+
+    if (putResp.ok) {
+      console.log('✅ 数据已同步到云端');
+    } else {
+      const err = await putResp.json();
+      console.warn('云端同步失败:', err.message);
+    }
+  } catch (e) {
+    console.warn('云端同步网络错误:', e.message);
   }
 }
 
@@ -1594,6 +1705,36 @@ function bindEvents() {
   });
 
   setupAddQuoteForm();
+}
+
+// ========================================
+// GitHub Token 初始化
+// ========================================
+
+/**
+ * 初始化 GitHub Token
+ * 优先级：URL参数 ?token=xxx > localStorage
+ * 使用方式：访问链接时带上 ?token=ghp_xxxx 即可激活自动同步
+ * 之后 Token 会保存在 localStorage，无需重复添加
+ */
+function initGitHubToken() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const tokenFromUrl = urlParams.get('token');
+
+  if (tokenFromUrl && tokenFromUrl.startsWith('ghp_')) {
+    localStorage.setItem('gh_token', tokenFromUrl);
+    // 清除URL中的token参数，防止泄露
+    const cleanUrl = window.location.origin + window.location.pathname;
+    window.history.replaceState({}, '', cleanUrl);
+    console.log('✅ GitHub Token 已配置，自动同步已启用');
+  }
+
+  const existingToken = localStorage.getItem('gh_token');
+  if (existingToken) {
+    console.log('✅ 自动同步已启用');
+  } else {
+    console.log('ℹ️ 未配置Token，仅本地存储。添加 ?token=ghp_xxx 启用云端同步');
+  }
 }
 
 // ========================================
