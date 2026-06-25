@@ -3,15 +3,36 @@
   "notes": {},
   "userQuotes": [
     {
+      "id": 1,
+      "title": "",
+      "text": "每日三动\n\n行动\n\n运动\n\n走动",
+      "tags": [
+        "行事"
+      ],
+      "isOverride": true
+    },
+    {
       "id": 1001,
       "type": "debate",
       "title": "11",
-      "text": "11测试",
+      "text": "11æµè¯",
       "tags": [],
       "tone": "positive",
       "createdAt": "2026-06-25T03:20:36.334Z",
       "isUserCreated": true
+    },
+    {
+      "id": 1002,
+      "type": "business",
+      "title": "柔柔弱弱人",
+      "text": "柔柔弱弱人",
+      "tags": [
+        "处世"
+      ],
+      "tone": "positive",
+      "createdAt": "2026-06-25T03:47:02.373Z",
+      "isUserCreated": true
     }
   ],
-  "lastSaved": "2026-06-25T03:20:39.416Z"
+  "lastSaved": "2026-06-25T03:47:02.373Z"
 }
