@@ -23,17 +23,7 @@
       "tone": "positive",
       "createdAt": "2026-06-25T03:48:32.373Z",
       "isUserCreated": true
-    },
-    {
-      "id": 1004,
-      "type": "short",
-      "title": "s",
-      "text": "社会化",
-      "tags": [],
-      "tone": "positive",
-      "createdAt": "2026-06-25T06:22:03.203Z",
-      "isUserCreated": true
     }
   ],
-  "lastSaved": "2026-06-25T06:22:28.878Z"
+  "lastSaved": "2026-06-25T06:22:37.239Z"
 }
