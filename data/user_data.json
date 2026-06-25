@@ -23,7 +23,21 @@
       "tone": "positive",
       "createdAt": "2026-06-25T03:48:32.373Z",
       "isUserCreated": true
+    },
+    {
+      "id": 1005,
+      "type": "short",
+      "title": "",
+      "text": "人们在呼吁什么 \n\n呐喊什么 \n\n就是他没有什么",
+      "tags": [
+        "处世",
+        "警醒",
+        "谋略"
+      ],
+      "tone": "positive",
+      "createdAt": "2026-06-25T06:28:58.296Z",
+      "isUserCreated": true
     }
   ],
-  "lastSaved": "2026-06-25T06:22:38.878Z"
+  "lastSaved": "2026-06-25T06:28:58.876Z"
 }
