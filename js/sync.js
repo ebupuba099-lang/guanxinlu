@@ -62,8 +62,8 @@ const SyncManager = {
 
     // 在 persistUserData 完成时广播通知（不覆盖原函数，避免引用冲突）
     const originalPersist = persistUserData;
-    persistUserData = function() {
-      originalPersist();
+    persistUserData = async function() {
+      await originalPersist();
       if (SyncManager._channel) {
         SyncManager._channel.postMessage({ type: 'data_changed', time: Date.now() });
       }
