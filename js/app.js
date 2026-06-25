@@ -232,7 +232,11 @@ function showToast(message) {
 async function loadQuotes() {
   try {
     const response = await fetch('./data/quotes.json');
-    const data = await response.json();
+    // 强制以 UTF-8 读取，避免 Safari 编码问题
+    const buffer = await response.arrayBuffer();
+    const decoder = new TextDecoder('utf-8');
+    const text = decoder.decode(buffer);
+    const data = JSON.parse(text);
     AppState.quotes = data.quotes;
   } catch (error) {
     console.error('加载语录失败:', error);
