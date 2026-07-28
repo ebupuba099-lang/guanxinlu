@@ -379,7 +379,17 @@
       "tone": "positive",
       "createdAt": "2026-07-28T02:58:23.153Z",
       "isUserCreated": true
+    },
+    {
+      "id": 8,
+      "title": "",
+      "text": "使你为人者父母\n\n教你做人者\n\n才配做师傅",
+      "type": "short",
+      "tags": [
+        "处世"
+      ],
+      "isOverride": true
     }
   ],
-  "lastSaved": "2026-07-28T02:58:24.925Z"
+  "lastSaved": "2026-07-28T02:58:48.409Z"
 }
