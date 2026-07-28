@@ -541,7 +541,19 @@
       "tone": "positive",
       "createdAt": "2026-07-28T03:59:33.721Z",
       "isUserCreated": true
+    },
+    {
+      "id": 1037,
+      "type": "debate",
+      "title": "",
+      "text": "如果你做一件事，这件事的利益只和你自己相关，说出来你就会失败，你必须事以密成，这叫业力。如果这件事跟大家的利益相关，广而告之，你就会成功，这叫愿力。",
+      "tags": [
+        "行事"
+      ],
+      "tone": "positive",
+      "createdAt": "2026-07-28T05:37:04.577Z",
+      "isUserCreated": true
     }
   ],
-  "lastSaved": "2026-07-28T03:59:33.721Z"
+  "lastSaved": "2026-07-28T05:37:04.577Z"
 }
