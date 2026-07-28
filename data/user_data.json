@@ -1,5 +1,7 @@
 {
-  "favorites": [],
+  "favorites": [
+    1008
+  ],
   "notes": {},
   "userQuotes": [
     {
@@ -445,5 +447,5 @@
       "isOverride": true
     }
   ],
-  "lastSaved": "2026-07-28T03:09:28.673Z"
+  "lastSaved": "2026-07-28T03:10:02.569Z"
 }
