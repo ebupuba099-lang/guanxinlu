@@ -411,7 +411,17 @@
         "谋略"
       ],
       "isOverride": true
+    },
+    {
+      "id": 82,
+      "title": "福祸标准",
+      "text": "如果幸福的标准是中庸之道的话\n\n福祸便有了量度\n\n四无\n\n无忧\n\n无虑\n\n无病\n\n无灾",
+      "type": "short",
+      "tags": [
+        "修心"
+      ],
+      "isOverride": true
     }
   ],
-  "lastSaved": "2026-07-28T03:03:34.928Z"
+  "lastSaved": "2026-07-28T03:04:04.265Z"
 }
