@@ -354,7 +354,19 @@
       "tone": "positive",
       "createdAt": "2026-07-28T02:57:20.057Z",
       "isUserCreated": true
+    },
+    {
+      "id": 1028,
+      "type": "short",
+      "title": "",
+      "text": "事缓则圆  人缓则安\n\n人安息平  息平念澄\n\n念澄观照  照见本真",
+      "tags": [
+        "处世"
+      ],
+      "tone": "positive",
+      "createdAt": "2026-07-28T02:58:04.345Z",
+      "isUserCreated": true
     }
   ],
-  "lastSaved": "2026-07-28T02:57:24.565Z"
+  "lastSaved": "2026-07-28T02:58:04.345Z"
 }
