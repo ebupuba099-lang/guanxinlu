@@ -389,7 +389,18 @@
         "处世"
       ],
       "isOverride": true
+    },
+    {
+      "id": 37,
+      "title": "",
+      "text": "如果你决定是对的\n\n现在的生活\n\n是你想要的吗",
+      "type": "short",
+      "tags": [
+        "认知",
+        "警醒"
+      ],
+      "isOverride": true
     }
   ],
-  "lastSaved": "2026-07-28T03:00:04.932Z"
+  "lastSaved": "2026-07-28T03:00:27.537Z"
 }
