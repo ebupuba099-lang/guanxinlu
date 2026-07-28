@@ -400,7 +400,18 @@
         "警醒"
       ],
       "isOverride": true
+    },
+    {
+      "id": 50,
+      "title": "",
+      "text": "如果不想让别人针对\n\n就不要让他发现你的企图\n\n人之所求即是人之弱",
+      "type": "short",
+      "tags": [
+        "处世",
+        "谋略"
+      ],
+      "isOverride": true
     }
   ],
-  "lastSaved": "2026-07-28T03:00:29.935Z"
+  "lastSaved": "2026-07-28T03:01:12.737Z"
 }
