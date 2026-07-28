@@ -578,7 +578,19 @@
       "tone": "positive",
       "createdAt": "2026-07-28T05:49:01.121Z",
       "isUserCreated": true
+    },
+    {
+      "id": 1040,
+      "type": "short",
+      "title": "",
+      "text": "一个人拥有的比展现的多，溢出的那部分就叫气质。想要的比拥有的多，溢出的那部分就叫焦虑。\n\n也就是说，求大于得，缺憾生焦虑。藏多于显，内敛出风华。",
+      "tags": [
+        "处世"
+      ],
+      "tone": "positive",
+      "createdAt": "2026-07-28T05:56:07.753Z",
+      "isUserCreated": true
     }
   ],
-  "lastSaved": "2026-07-28T05:49:03.659Z"
+  "lastSaved": "2026-07-28T05:56:08.658Z"
 }
